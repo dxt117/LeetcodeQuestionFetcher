@@ -96,3 +96,40 @@ def check_and_download_img(content, img_p):
             # 去除img标签
             content = content.replace(img_tag, '')
     return content
+
+
+# 从代码模板中提取函数名定义
+def get_function_definition(code_template):
+    # 使用正则表达式匹配函数定义
+    return re.search(r'.*(?=\{)', code_template).group()
+
+
+# 解析函数定义
+def parse_function_definition(code_template):
+    # 提取函数定义
+    func_def = get_function_definition(code_template) + ";"
+    # 正则表达式匹配返回值类型、函数名和参数类型
+    pattern = re.compile(r'^(?P<return_type>\w+\s*\*?\s*)\s*(?P<function_name>\w+)\s*\((?P<parameters>.*)\)\s*;?$')
+    match = pattern.match(func_def)
+
+    if match:
+        return_type = match.group('return_type').strip()
+        function_name = match.group('function_name').strip()
+        parameters = match.group('parameters').strip()
+
+        # 解析参数列表
+        param_pattern = re.compile(r'(\w+\s*\*?\s*\w+)')
+        param_matches = param_pattern.findall(parameters)
+
+        param_details = [param.split() for param in param_matches]
+        param_types = [' '.join(param[:-1]).strip() for param in param_details]
+        param_names = [param[-1].strip() for param in param_details]
+
+        return {
+            'return_type': return_type,
+            'function_name': function_name,
+            'param_types': param_types,
+            'param_names': param_names
+        }
+    else:
+        return None

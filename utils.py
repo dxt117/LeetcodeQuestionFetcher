@@ -24,6 +24,23 @@ def check_dir_exists(fp):
         print(f"\033[91m告警: 目录 {directory} 已经存在。\033[0m")
 
 
+# 将内容写入文件
+def write_content_to_file(fp, content):
+    # 检查目录是否存在, 如果不存在则创建目录
+    check_dir_exists(fp)
+    # 检查文件是否存在,如果存在则告警
+    if os.path.exists(fp):
+        print(f"\033[91m告警: 文件 {fp} 已经存在。\033[0m")
+        return
+    # 如果文件不存在则创建文件,并设置编码为utf-8,
+    with open(fp, 'w', encoding='utf-8') as file:
+        # 追加时间注释
+        file.write(create_by())
+        # 追加其他内容
+        file.write(content)
+        print(f"\033[92m提示：文件 {fp} 保存成功。\033[0m")
+
+
 # 使用正则表达式去除 <pre> 标签并将其中每一行用 <p> 标签包裹
 def remove_replace_tags(content, remove_tag, add_tag_each_line_in=''):
     pattern = re.compile(rf'<{remove_tag}>(.*?)</{remove_tag}>', re.DOTALL)
@@ -47,26 +64,6 @@ def add_empty_paragraph(text):
     pattern = re.compile(r'(<p><strong>(.*?)示例(.*?)</strong></p>)')
     replacement = r'<p>&nbsp;</p>\n\1'
     return re.sub(pattern, replacement, text)
-
-
-# 将内容写入文件
-def write_to_cfile(fp, content, code_template=''):
-    # 检查目录是否存在, 如果不存在则创建目录
-    check_dir_exists(fp)
-    # 检查文件是否存在
-    if os.path.exists(fp):
-        print(f"\033[91m告警: 文件 {fp} 已经存在。\033[0m")
-        return
-    # 打开文件，如果文件不存在则创建文件,并设置编码为utf-8,如果存在则告警
-    with open(fp, 'a+') as file:
-        # 追加时间注释
-        file.write(create_by())
-        file.seek(0, 0)
-        # 追加其他内容
-        file.write(f"/**\n{content}\n */\n\n")
-        # 追加代码模板
-        file.write(code_template)
-        print(f"\033[92m提示：文件 {fp} 保存成功。\033[0m")
 
 
 # 检测内容是否包含img标签，如果有则下载图片到本地
@@ -98,14 +95,4 @@ def check_and_download_img(content, img_p):
                 print(f"\033[91m告警: 图片 {img_path} 已经存在。\033[0m")
             # 去除img标签
             content = content.replace(img_tag, '')
-    return content
-
-
-# 将注释转换py注释格式
-def translate_to_py_comment(content):
-    # 处理单行注释
-    content = re.sub(r'//\s*(.*)', r'# \1', content)
-    # 处理多行注释
-    content = re.sub(r'/\*\s*(.*?)\s*\*/', lambda match: '"""' + match.group(1).replace('\n', '\n') + '"""', c_code,
-                    flags=re.DOTALL)
     return content
